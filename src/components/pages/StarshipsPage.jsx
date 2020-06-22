@@ -1,13 +1,17 @@
 import React from 'react'
 import Listing from '../common/Listing';
+import {getStarships} from '../service/swApiService';
 
 
-export default function StarshipsPage({initialData}) {
+export default function StarshipsPage() {
 
   return (
     <Listing
-      initialData={initialData}
+      getInitialRestData={getStarships}
       tableDescriptor={'Starships'}
+      elementToAdd={'Starship'}
+      columnStorage={'starshipColumns'}
+      dataStorage={'starshipData'}
     />
   )
 }

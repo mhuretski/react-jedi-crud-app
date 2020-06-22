@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import Input from "./Input";
 import Button from "./Button";
 
-const Form = ({columns, initialData, onAddData}) => {
+const Form = ({columns, initialData, onAddData, index}) => {
     const [personData, setPersonData] = useState(initialData);
 
     const handleClick = (event) => {
         console.log(event)
         event.preventDefault();
-        onAddData(personData);
+        onAddData(personData, index);
     }
 
     const handleChange = (event) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from './Button';
 
-function Table({columns, data, tableDescriptor, onDelete}) {
+function Table({columns, data, tableDescriptor, onDelete, onClick}) {
 
   return (
     <table className="table table-dark">
@@ -14,11 +14,13 @@ function Table({columns, data, tableDescriptor, onDelete}) {
       </tr>
       </thead>
       <tbody>
-      {data.map((item, index) => (
-        <tr key={item.id}>
-          <th scope="row">{++index}</th>
+      {!!data.length && data.map((item, index) => (
+        <tr key={index}>
+          <th scope="row"
+              onClick={() => onClick(item, index)}>{index + 1}</th>
           {columns.map(columnTitle => (
-            <td key={item[columnTitle] + columnTitle}>{item[columnTitle]}</td>
+            <td key={item[columnTitle] + columnTitle}
+                onClick={() => onClick(item, index)}>{item[columnTitle]}</td>
           ))}
           <td>
             <Button

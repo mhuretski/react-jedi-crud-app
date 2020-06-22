@@ -9,20 +9,18 @@ import StarshipsPage from '../pages/StarshipsPage';
 import PlanetsPage from '../pages/PlanetsPage';
 import NotFound from './NotFound';
 
-export default function Routes(props) {
-  const {initialData} = props;
-  const {peopleData, planetsData, starshipsData} = initialData;
+export default function Routes() {
 
   return (
     <Switch>
       <Route path="/people">
-        <PeoplePage initialData={peopleData}/>
+        <PeoplePage/>
       </Route>
       <Route path="/planets">
-        <PlanetsPage initialData={planetsData}/>
+        <PlanetsPage/>
       </Route>
       <Route path="/starships">
-        <StarshipsPage initialData={starshipsData}/>
+        <StarshipsPage/>
       </Route>
       <Route path='/not-found'>
         <NotFound/>

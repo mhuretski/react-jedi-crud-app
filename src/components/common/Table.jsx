@@ -1,27 +1,38 @@
 import React from 'react';
 import Button from './Button';
 
-function Table({columns, data, tableDescriptor, onDelete, onClick}) {
+function Table({columns, data, tableDescriptor, onDelete}) {
+
+  const renderCell = (item, column) => column.content ?
+    column?.content(item) : item[column.colName];
 
   return (
-    <table className="table table-dark">
+    <table className="table table-striped table-dark">
       <thead>
       <tr>
-        <th scope="col">{tableDescriptor}</th>
-        {columns.map(columnTitle => (
-          <th key={columnTitle} scope="col">{columnTitle}</th>
-        ))}
+        <th scope="col">#</th>
+        {columns.map(({colName}) => {
+          if (colName !== 'id') {
+            return <th key={colName} scope="col">{colName}</th>;
+          }
+          return null
+        })}
       </tr>
       </thead>
       <tbody>
       {!!data.length && data.map((item, index) => (
         <tr key={index}>
-          <th scope="row"
-              onClick={() => onClick(item, index)}>{index + 1}</th>
-          {columns.map(columnTitle => (
-            <td key={item[columnTitle] + columnTitle}
-                onClick={() => onClick(item, index)}>{item[columnTitle]}</td>
-          ))}
+          <th scope="row">{index + 1}</th>
+          {columns.map(column => {
+            if (column.colName !== 'id') {
+              return (
+                <td key={item[column.colName] + column.colName}>
+                  {renderCell(item, column)}
+                </td>
+              );
+            }
+            return null
+          })}
           <td>
             <Button
               label="Delete"
@@ -33,10 +44,9 @@ function Table({columns, data, tableDescriptor, onDelete, onClick}) {
       ))}
       {!data.length &&
        <tr>
-         <td>no {tableDescriptor} left</td>
+         <th colSpan={columns.length + 1}>no {tableDescriptor} left</th>
        </tr>}
       </tbody>
-
     </table>
   );
 }

@@ -1,136 +1,97 @@
-import React, {
-  useEffect,
-  useState
-} from 'react';
+import React from 'react';
+import {
+  useDispatch,
+  useSelector
+} from 'react-redux';
+import {Link} from 'react-router-dom';
+import {Spinner} from 'react-bootstrap';
+
 import Table from "./Table";
-import Form from './Form';
 import Button from './Button';
-
-const useStateWithLocalStorage = (getInitialRestData, localStorageKey) => {
-  const [value, setValue] = useState(getInitialRestData);
-
-  useEffect(() => {
-    const getData = async () => {
-      const storedData = localStorage.getItem(localStorageKey);
-      let data;
-      if (storedData) {
-        data = JSON.parse(storedData);
-      } else {
-        data = await getInitialRestData();
-      }
-      setValue(data);
-    };
-
-    getData();
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(localStorageKey, JSON.stringify(value));
-  }, [value]);
-
-  return [value, setValue];
-};
+import {
+  getLoading,
+} from '../../store/selectors/loading';
 
 function Listing({
-                   getInitialRestData,
                    tableDescriptor,
                    elementToAdd,
-                   columnStorage,
-                   dataStorage
+                   columns,
+                   localStorageKey,
+                   routePath,
+                   deleteItem,
+                   getData,
+                   changeBelovedStatus
                  }) {
-  const [editData, setEditData] = useState(null);
-  const [index, setIndex] = useState(-1);
-  const [showForm, setShowForm] = useState(false);
-  const [storedData, setData] = useStateWithLocalStorage(getInitialRestData, dataStorage);
+  const dispatch = useDispatch();
+  const isLoading = useSelector(state => getLoading(state));
+  const storedData = useSelector(state => getData(state));
+  localStorage.setItem(localStorageKey, JSON.stringify(storedData));
 
-  const storedColumns = localStorage.getItem(columnStorage);
-  const columns = (storedData && storedData.length) ?
-    Object.keys(storedData[0]) :
-    (storedColumns) ? JSON.parse(storedColumns) : null;
-  if (columns) {
-    localStorage.setItem(columnStorage, JSON.stringify(columns));
-  }
-
-  const handleAdd = (item, index = -1) => {
-    let newData;
-    if (index !== -1) {
-      newData = [...storedData];
-      newData[index] = Object.assign(item);
-    } else {
-      newData = [...storedData, item];
-    }
-
-    setData(newData);
-    setIndex(-1);
-    setEditData(null);
-    setShowForm(false);
+  const handleBelovedStatus = id => {
+    dispatch(changeBelovedStatus(id));
   };
 
   const handleDelete = (item) => {
-    const newData = storedData.filter(storedItem => storedItem !== item);
-    setData(newData);
+    dispatch(deleteItem(item));
   };
 
-  const handleEdit = (item, index) => {
-    const dataToEdit = storedData.filter(storedItem => storedItem === item);
-    if (dataToEdit.length) {
-      const itemToEdit = Object.assign(dataToEdit[0]);
-
-      setEditData(itemToEdit);
-      setIndex(index);
-      setShowForm(true);
-    } else {
-      console.log('item not found');
+  const getColumns = () => {
+    if (!storedData.length) {
+      return columns.map(colName => {
+        return {colName};
+      });
     }
-  };
 
-  const getInitialData = () => {
-    if (columns) {
-      if (editData) {
-        return columns.reduce((cols, columnName) => {
-          cols[columnName] = editData[columnName];
-          return cols;
-        }, {});
-      } else {
-        return columns.reduce((cols, columnName) => {
-          cols[columnName] = '';
-          return cols;
-        }, {});
+    return Object.keys(storedData[0]).map(colName => {
+      if (colName === 'beloved') {
+        return {
+          colName,
+          content: ({beloved, id}) => (
+            <input
+              type="checkbox"
+              checked={beloved}
+              onChange={() => handleBelovedStatus(id)}
+            />
+          )
+        };
       }
-    }
-    return null;
+      if (colName === 'name') {
+        return {
+          colName,
+          content: ({name, id}) => (
+            <Link style={{color: '#ffc107'}}
+                  to={`/${routePath}/${id}`}>{name}</Link>
+          )
+        };
+      }
+      return {colName};
+    });
   };
 
   return (
     <div className="container">
       <h2>{tableDescriptor} from Star Wars Universe</h2>
-      {columns && <div>
-        {!showForm && <Table
+      {isLoading && <div id="loader">
+        <Spinner animation="border"/>
+      </div>}
+      {!isLoading && <div>
+        {<Link to={`/${routePath}/new`}>
+          <Button
+            label={`Add ${elementToAdd}`}
+            classes="btn alert btn-primary"
+          />
+        </Link>}
+        {columns && <Table
           data={storedData}
-          setValues={setData}
-          columns={columns}
+          columns={getColumns()}
           tableDescriptor={tableDescriptor}
           onDelete={handleDelete}
-          onClick={handleEdit}
           showTableContent={storedData && storedData.length !== 0}
         />}
 
-        {showForm && <Form
-          initialData={getInitialData()}
-          columns={columns}
-          onAddData={handleAdd}
-          index={index}
-        />}
-        {!showForm &&
-           <Button
-             label={`Create ${elementToAdd}`}
-             classes="alert alert-danger"
-             onClick={() => setShowForm(true)}
-           />}
-      </div>}
-
-      {!columns && <div>
-        <h1 className="not-found">There is no information for this page</h1>
+        {!columns && <div>
+          <h1 className="not-found">There is no information for this page</h1>
+        </div>}
       </div>}
     </div>
   );
